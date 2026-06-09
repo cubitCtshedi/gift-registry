@@ -1,20 +1,4 @@
-import { useState } from 'react'
-import GiftForm from './GiftForm'
-
-export default function RegistryView({ list, onAddGift, onUpdateGift, onDeleteGift, onToggleClaim, onBack }) {
-  const [showForm, setShowForm] = useState(false)
-  const [editingGift, setEditingGift] = useState(null)
-
-  const handleAddGift = (giftData) => {
-    onAddGift(giftData)
-    setShowForm(false)
-  }
-
-  const handleEditGift = (giftData) => {
-    onUpdateGift(editingGift.id, giftData)
-    setEditingGift(null)
-  }
-
+export default function RegistryView({ list, onToggleClaim, onBack }) {
   const claimedCount = list.gifts.filter(g => g.claimed).length
 
   return (
@@ -53,7 +37,7 @@ export default function RegistryView({ list, onAddGift, onUpdateGift, onDeleteGi
       <div className="tracker">
         <span>Claimed</span>
         <div className="barwrap">
-          <div className="bar" style={{ width: `${(claimedCount / list.gifts.length) * 100}%` }}></div>
+          <div className="bar" style={{ width: `${list.gifts.length ? (claimedCount / list.gifts.length) * 100 : 0}%` }}></div>
         </div>
         <span>
           <b>{claimedCount}</b>&nbsp;of&nbsp;<b>{list.gifts.length}</b>
@@ -66,93 +50,24 @@ export default function RegistryView({ list, onAddGift, onUpdateGift, onDeleteGi
           <span className="ct">{claimedCount} of {list.gifts.length} reserved</span>
         </div>
 
-        {!showForm && !editingGift && list.gifts.length > 0 && (
-          <button
-            onClick={() => setShowForm(true)}
-            style={{
-              width: '100%',
-              padding: '24px',
-              background: 'var(--ink)',
-              color: 'var(--paper)',
-              border: 'none',
-              fontFamily: "'Jost', sans-serif",
-              fontSize: '12px',
-              fontWeight: 500,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              marginBottom: '6px',
-              transition: 'opacity 0.3s'
-            }}
-            onMouseOver={(e) => e.target.style.opacity = '0.85'}
-            onMouseOut={(e) => e.target.style.opacity = '1'}
-          >
-            + Add Gift
-          </button>
-        )}
-
-        {(showForm || editingGift) && (
-          <GiftForm
-            gift={editingGift}
-            onSubmit={editingGift ? handleEditGift : handleAddGift}
-            onCancel={() => {
-              setShowForm(false)
-              setEditingGift(null)
-            }}
-          />
-        )}
-
         {list.gifts.length === 0 ? (
-          <div>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                style={{
-                  width: '100%',
-                  padding: '24px',
-                  background: 'var(--ink)',
-                  color: 'var(--paper)',
-                  border: 'none',
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  marginBottom: '32px',
-                  transition: 'opacity 0.3s'
-                }}
-                onMouseOver={(e) => e.target.style.opacity = '0.85'}
-                onMouseOut={(e) => e.target.style.opacity = '1'}
-              >
-                + Add First Gift
-              </button>
-            )}
-            {!showForm && (
-              <div style={{
-                padding: '60px 40px',
-                textAlign: 'center',
-                background: 'var(--card)',
-                border: '1px solid var(--line)'
-              }}>
-                <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>
-                  No gifts added yet. Begin with intention.
-                </p>
-              </div>
-            )}
+          <div style={{
+            padding: '60px 40px',
+            textAlign: 'center',
+            background: 'var(--card)',
+            border: '1px solid var(--line)'
+          }}>
+            <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>
+              No gifts added yet.
+            </p>
           </div>
         ) : (
           list.gifts.map((gift, idx) => (
-            <div
-              key={gift.id}
-              className={`row ${gift.claimed ? 'claimed' : ''}`}
-            >
+            <div key={gift.id} className={`row ${gift.claimed ? 'claimed' : ''}`}>
               <div className="idx">{String.fromCharCode(73 + idx)}</div>
               <div className="nm">
                 <small>{gift.category}</small>
-                <div style={{ cursor: 'pointer' }} onClick={() => setEditingGift(gift)}>
-                  {gift.name}
-                </div>
+                <div>{gift.name}</div>
                 {gift.link && (
                   <a href={gift.link} target="_blank" rel="noopener noreferrer" className="view">
                     View ↗
@@ -167,64 +82,6 @@ export default function RegistryView({ list, onAddGift, onUpdateGift, onDeleteGi
               >
                 {gift.claimed ? 'Unclaim' : 'Claim'}
               </button>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '8px' }}>
-                <button
-                  onClick={() => setEditingGift(gift)}
-                  style={{
-                    border: '1px solid var(--line)',
-                    background: 'transparent',
-                    color: 'var(--soft)',
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: '10px',
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    padding: '13px 16px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.color = 'var(--accent)'
-                    e.target.style.borderColor = 'var(--accent)'
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.color = 'var(--soft)'
-                    e.target.style.borderColor = 'var(--line)'
-                  }}
-                  title="Edit this gift"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm(`Delete "${gift.name}"?`)) {
-                      onDeleteGift(gift.id)
-                    }
-                  }}
-                  style={{
-                    border: '1px solid var(--line)',
-                    background: 'transparent',
-                    color: 'var(--soft)',
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: '10px',
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    padding: '13px 16px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.color = 'var(--accent)'
-                    e.target.style.borderColor = 'var(--accent)'
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.color = 'var(--soft)'
-                    e.target.style.borderColor = 'var(--line)'
-                  }}
-                  title="Delete this gift"
-                >
-                  🗑️
-                </button>
-              </div>
             </div>
           ))
         )}

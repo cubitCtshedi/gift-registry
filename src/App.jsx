@@ -39,74 +39,25 @@ function App() {
     setLoading(false)
   }
 
-  const createList = async (name, description, occasion, location, direction) => {
-    const { data, error } = await supabase
-      .from('registry_lists')
-      .insert({ name, description, occasion, location, direction })
-      .select()
-      .single()
-    if (error) { console.error(error); return }
-    const newList = { ...data, gifts: [] }
-    setLists(prev => [...prev, newList])
-    setCurrentListId(newList.id)
-    setView('registry')
-  }
-
-  const deleteList = async (id) => {
-    const { error } = await supabase.from('registry_lists').delete().eq('id', id)
-    if (error) { console.error(error); return }
-    setLists(prev => {
-      const updated = prev.filter(l => l.id !== id)
-      if (currentListId === id) {
-        setCurrentListId(updated.length > 0 ? updated[0].id : null)
-        if (updated.length === 0) setView('home')
-      }
-      return updated
-    })
-  }
-
-  const addGift = async (listId, gift) => {
-    const { data, error } = await supabase
-      .from('gifts')
-      .insert({ list_id: listId, ...gift, claimed: false })
-      .select()
-      .single()
-    if (error) { console.error(error); return }
-    setLists(prev => prev.map(list =>
-      list.id === listId ? { ...list, gifts: [...list.gifts, data] } : list
-    ))
-  }
-
-  const updateGift = async (listId, giftId, updates) => {
-    const { data, error } = await supabase
-      .from('gifts')
-      .update(updates)
-      .eq('id', giftId)
-      .select()
-      .single()
-    if (error) { console.error(error); return }
-    setLists(prev => prev.map(list =>
-      list.id === listId
-        ? { ...list, gifts: list.gifts.map(g => g.id === giftId ? data : g) }
-        : list
-    ))
-  }
-
-  const deleteGift = async (listId, giftId) => {
-    const { error } = await supabase.from('gifts').delete().eq('id', giftId)
-    if (error) { console.error(error); return }
-    setLists(prev => prev.map(list =>
-      list.id === listId
-        ? { ...list, gifts: list.gifts.filter(g => g.id !== giftId) }
-        : list
-    ))
-  }
-
   const toggleClaim = async (listId, giftId) => {
     const list = lists.find(l => l.id === listId)
     const gift = list?.gifts.find(g => g.id === giftId)
     if (!gift) return
-    await updateGift(listId, giftId, { claimed: !gift.claimed })
+
+    const { data, error } = await supabase
+      .from('gifts')
+      .update({ claimed: !gift.claimed })
+      .eq('id', giftId)
+      .select()
+      .single()
+
+    if (error) { console.error(error); return }
+
+    setLists(prev => prev.map(l =>
+      l.id === listId
+        ? { ...l, gifts: l.gifts.map(g => g.id === giftId ? data : g) }
+        : l
+    ))
   }
 
   const currentList = lists.find(l => l.id === currentListId)
@@ -132,16 +83,16 @@ function App() {
   return (
     <>
       {view === 'home' ? (
-        <ListManager lists={lists} onCreateList={createList} onSelectList={(id) => {
-          setCurrentListId(id)
-          setView('registry')
-        }} onDeleteList={deleteList} />
+        <ListManager
+          lists={lists}
+          onSelectList={(id) => {
+            setCurrentListId(id)
+            setView('registry')
+          }}
+        />
       ) : currentList ? (
         <RegistryView
           list={currentList}
-          onAddGift={(gift) => addGift(currentList.id, gift)}
-          onUpdateGift={(giftId, updates) => updateGift(currentList.id, giftId, updates)}
-          onDeleteGift={(giftId) => deleteGift(currentList.id, giftId)}
           onToggleClaim={(giftId) => toggleClaim(currentList.id, giftId)}
           onBack={() => setView('home')}
         />
