@@ -15,15 +15,19 @@ function App() {
 
   async function loadLists() {
     setLoading(true)
-    const { data: listsData } = await supabase
+    const { data: listsData, error: listsError } = await supabase
       .from('registry_lists')
       .select('*')
       .order('created_at', { ascending: true })
 
-    const { data: giftsData } = await supabase
+    if (listsError) console.error('Lists fetch error:', listsError)
+
+    const { data: giftsData, error: giftsError } = await supabase
       .from('gifts')
       .select('*')
       .order('created_at', { ascending: true })
+
+    if (giftsError) console.error('Gifts fetch error:', giftsError)
 
     const listsWithGifts = (listsData || []).map(list => ({
       ...list,
