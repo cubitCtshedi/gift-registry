@@ -18,18 +18,16 @@ export default function RegistryView({ list, onToggleClaim, onBack }) {
           ← Back
         </button>
         <span className="vol">{list.name}</span>
-        <span>{list.location}</span>
+        <span>{list.occasion}</span>
       </div>
 
       <header className="hero">
-        <p className="kicker">{list.direction || 'Curated with care'}</p>
+        <p className="kicker">Curated with care</p>
         <h1>{list.name}</h1>
         {list.description && <p className="lede">{list.description}</p>}
-        {(list.occasion || list.location || list.direction) && (
+        {list.occasion && (
           <div className="credits">
-            {list.occasion && <div><span>The Occasion</span><b>{list.occasion}</b></div>}
-            {list.direction && <div><span>Direction</span><b>{list.direction}</b></div>}
-            {list.location && <div><span>Location</span><b>{list.location}</b></div>}
+            <div><span>The Occasion</span><b>{list.occasion}</b></div>
           </div>
         )}
       </header>
