@@ -1,19 +1,31 @@
+import confetti from 'canvas-confetti'
+
 export default function RegistryView({ list, onToggleClaim, onBack }) {
   const claimedCount = list.gifts.filter(g => g.claimed).length
+
+  const handleClaim = async (gift) => {
+    if (gift.claimed) {
+      onToggleClaim(gift.id, null)
+      return
+    }
+    const result = await onToggleClaim(gift.id, null)
+    if (result) {
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        colors: ['#7a1f2b', '#a98c5a', '#f3efe9', '#d6cfc3'],
+        origin: { y: 0.6 }
+      })
+    }
+  }
 
   return (
     <div>
       <div className="masthead">
         <button onClick={onBack} style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--ink)',
-          cursor: 'pointer',
-          fontSize: '11px',
-          letterSpacing: '0.32em',
-          textTransform: 'uppercase',
-          padding: 0,
-          fontFamily: "'Jost', sans-serif"
+          background: 'none', border: 'none', color: 'var(--ink)', cursor: 'pointer',
+          fontSize: '11px', letterSpacing: '0.32em', textTransform: 'uppercase',
+          padding: 0, fontFamily: "'Jost', sans-serif"
         }}>
           ← Back
         </button>
@@ -35,11 +47,9 @@ export default function RegistryView({ list, onToggleClaim, onBack }) {
       <div className="tracker">
         <span>Claimed</span>
         <div className="barwrap">
-          <div className="bar" style={{ width: `${list.gifts.length ? (claimedCount / list.gifts.length) * 100 : 0}%` }}></div>
+          <div className="bar" style={{ width: `${list.gifts.length ? (claimedCount / list.gifts.length) * 100 : 0}%` }} />
         </div>
-        <span>
-          <b>{claimedCount}</b>&nbsp;of&nbsp;<b>{list.gifts.length}</b>
-        </span>
+        <span><b>{claimedCount}</b>&nbsp;of&nbsp;<b>{list.gifts.length}</b></span>
       </div>
 
       <main className="wrap">
@@ -49,15 +59,8 @@ export default function RegistryView({ list, onToggleClaim, onBack }) {
         </div>
 
         {list.gifts.length === 0 ? (
-          <div style={{
-            padding: '60px 40px',
-            textAlign: 'center',
-            background: 'var(--card)',
-            border: '1px solid var(--line)'
-          }}>
-            <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>
-              No gifts added yet.
-            </p>
+          <div style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--line)' }}>
+            <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>No gifts added yet.</p>
           </div>
         ) : (
           list.gifts.map((gift, idx) => (
@@ -67,17 +70,11 @@ export default function RegistryView({ list, onToggleClaim, onBack }) {
                 <small>{gift.category}</small>
                 <div>{gift.name}</div>
                 {gift.link && (
-                  <a href={gift.link} target="_blank" rel="noopener noreferrer" className="view">
-                    View ↗
-                  </a>
+                  <a href={gift.link} target="_blank" rel="noopener noreferrer" className="view">View ↗</a>
                 )}
               </div>
               <div className="dt">{gift.description}</div>
-              <button
-                onClick={() => onToggleClaim(gift.id)}
-                className="claim"
-                style={{ cursor: 'pointer' }}
-              >
+              <button onClick={() => handleClaim(gift)} className={`claim ${gift.claimed ? 'unclaim-btn' : ''}`}>
                 {gift.claimed ? 'Unclaim' : 'Claim'}
               </button>
             </div>
@@ -91,6 +88,7 @@ export default function RegistryView({ list, onToggleClaim, onBack }) {
         <p>Whatever is chosen will be worn, used, and quietly treasured. Consider this the only registry where restraint is the highest compliment.</p>
         <p className="sig">&mdash; with love & considered taste</p>
       </footer>
+
     </div>
   )
 }

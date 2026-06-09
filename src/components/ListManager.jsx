@@ -14,46 +14,43 @@ export default function ListManager({ lists, onSelectList }) {
       </header>
 
       <div className="wrap">
-        <div>
-          <div className="sec-head">
-            <h2>Registries</h2>
-            <span className="ct">{lists.length} total</span>
-          </div>
+        <div className="sec-head">
+          <h2>Registries</h2>
+          <span className="ct">{lists.length} total</span>
+        </div>
 
-          {lists.length === 0 ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: 'var(--card)',
-              border: '1px solid var(--line)'
-            }}>
-              <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>
-                No registries yet.
-              </p>
-            </div>
-          ) : (
-            lists.map((list, idx) => (
-              <div key={list.id} className="row">
+        {lists.length === 0 ? (
+          <div style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--card)', border: '1px solid var(--line)' }}>
+            <p style={{ color: 'var(--soft)', fontSize: '16px', lineHeight: 1.8 }}>No registries yet.</p>
+          </div>
+        ) : (
+          lists.map((list, idx) => {
+            const claimed = list.gifts.filter(g => g.claimed).length
+            const total = list.gifts.length
+            const pct = total ? (claimed / total) * 100 : 0
+            return (
+              <div key={list.id} className="row" style={{ cursor: 'pointer' }} onClick={() => onSelectList(list.id)}>
                 <div className="idx">{String.fromCharCode(73 + idx)}</div>
                 <div className="nm">
                   <small>{list.occasion}</small>
-                  <div onClick={() => onSelectList(list.id)} style={{ cursor: 'pointer' }}>
-                    {list.name}
-                    {list.direction && <span style={{ color: 'var(--soft)', marginLeft: '12px', fontSize: '14px' }}>• {list.direction}</span>}
+                  <div>{list.name}</div>
+                  {list.description && (
+                    <p style={{ fontSize: '13px', color: 'var(--soft)', marginTop: '6px' }}>{list.description}</p>
+                  )}
+                  <div className="reg-progress-wrap">
+                    <div className="reg-progress-bar" style={{ width: `${pct}%` }} />
                   </div>
-                  {list.description && <p style={{ fontSize: '12px', color: 'var(--soft)', marginTop: '6px' }}>{list.description}</p>}
+                  <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--soft)', marginTop: '8px', display: 'block' }}>
+                    {claimed} of {total} claimed
+                  </span>
                 </div>
-                <div className="dt">{list.location}</div>
-                <div className="pr" style={{ textAlign: 'right' }}>
-                  <small>{list.gifts.length} gift{list.gifts.length !== 1 ? 's' : ''}</small>
-                </div>
-                <button onClick={() => onSelectList(list.id)} className="claim">
+                <button className="claim" onClick={e => { e.stopPropagation(); onSelectList(list.id) }}>
                   View
                 </button>
               </div>
-            ))
-          )}
-        </div>
+            )
+          })
+        )}
       </div>
 
       <footer>
